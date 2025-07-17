@@ -10,16 +10,31 @@ const loginRoutes = require('./routes/login');
 const alumniRoutes = require('./routes/alumni');
 const addressRoutes = require('./routes/address');
 const degreeRoutes = require('./routes/degree');
-const employmentRoutes = require('./routes/employment'); 
+const employmentRoutes = require('./routes/employment');
 const donationRoutes = require('./routes/donation');
 const skillsetRoutes = require('./routes/skillset');
 
 const app = express();
+const PORT = process.env.PORT || 3000;
 
-app.use(cors());
+// Enable CORS with custom config
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type'],
+}));
+
+// Parse JSON and form data
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
+// Log all incoming requests (for debugging)
+app.use((req, res, next) => {
+  console.log(`➡️ ${req.method} ${req.url}`);
+  next();
+});
+
+// Set up session
 app.use(
   session({
     secret: 'secret-key',
@@ -28,19 +43,29 @@ app.use(
   })
 );
 
-// Serve frontend static files
+// Static frontend files (if using in public folder)
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Routes
+// API Routes
 app.use('/api/login', loginRoutes);
 app.use('/api/alumni', alumniRoutes);
 app.use('/api/address', addressRoutes);
 app.use('/api/degree', degreeRoutes);
-app.use('/api/employment', employmentRoutes); // 
+app.use('/api/employment', employmentRoutes);
 app.use('/api/donation', donationRoutes);
 app.use('/api/skillset', skillsetRoutes);
 
-const PORT = 3000;
+// Health check
+app.get('/api/ping', (req, res) => {
+  res.json({ message: 'API is alive 🔥' });
+});
+
+// 404 fallback
+app.use((req, res) => {
+  res.status(404).json({ status: 'error', message: 'Route not found' });
+});
+
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`✅ Server running on port ${PORT}`);
 });
