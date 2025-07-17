@@ -144,25 +144,25 @@
     const username = e.target.username.value.trim();
     const password = e.target.password.value.trim();
 
-    fetch('http://localhost:3000/api/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    })
-    .then(res => res.json())
-    .then(data => {
-      if (data.status === 'success') {
-        sessionStorage.setItem('loggedInUser', username);
-        window.location.href = 'Homepage.html'; // redirect to homepage
-      } else {
-        document.getElementById('loginError').textContent = data.message || 'Login failed';
-      }
-    })
-    .catch(err => {
-      console.error('Login error:', err);
-      document.getElementById('loginError').textContent = 'Server error';
-    });
-  });
+fetch('/api/login', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ username, password })
+})
+.then(res => res.json())
+.then(data => {
+  if (data.status === 'success') {
+    sessionStorage.setItem('loggedInUser', username);
+    window.location.href = 'Homepage.html';
+  } else {
+    document.getElementById('loginError').textContent = data.message || 'Login failed';
+  }
+})
+.catch(err => {
+  console.error('Fetch error:', err);
+  document.getElementById('loginError').textContent = 'Server error';
+});
+
 
   // 🚫 Registration form still uses localStorage (you can ignore/remove it if you only use the DB)
 </script>
