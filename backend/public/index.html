@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Alumni Management System - Login / Register</title>
+  <style>
+    :root {
+      --ksu-gold: #ffc61a;
+      --ksu-black: #000000;
+      --ksu-grey: #f1f1f1;
+    }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--ksu-grey);
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      color: var(--ksu-black);
+    }
+    .header {
+      background-color: var(--ksu-gold);
+      padding: 2rem;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 2rem;
+    }
+    .container {
+      background: #fff;
+      margin: 3rem auto;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 320px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h2 {
+      margin-bottom: 1.5rem;
+    }
+    form {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    input[type="text"], input[type="password"] {
+      padding: 0.6rem;
+      margin-bottom: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+    button {
+      padding: 0.75rem;
+      background-color: var(--ksu-gold);
+      color: var(--ksu-black);
+      border: none;
+      border-radius: 5px;
+      font-weight: bold;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #e6b800;
+    }
+    .error {
+      color: red;
+      margin-top: 0.5rem;
+      min-height: 1.2rem;
+      text-align: center;
+    }
+    .toggle-link {
+      margin-top: 1rem;
+      color: var(--ksu-gold);
+      cursor: pointer;
+      text-align: center;
+      font-weight: bold;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Alumni Management System</h1>
+  </div>
+
+  <div class="container" id="loginContainer">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <input type="text" name="username" placeholder="Username" required autocomplete="username" />
+      <input type="password" name="password" placeholder="Password" required autocomplete="current-password" />
+      <button type="submit">Login</button>
+      <div class="error" id="loginError"></div>
+    </form>
+    <div class="toggle-link" id="showRegister">Create a new account</div>
+  </div>
+
+  <div class="container" id="registerContainer" style="display:none;">
+    <h2>Create New Account</h2>
+    <form id="registerForm">
+      <input type="text" name="newUsername" placeholder="Choose username" required autocomplete="username" />
+      <input type="password" name="newPassword" placeholder="Choose password" required autocomplete="new-password" />
+      <input type="password" name="confirmPassword" placeholder="Confirm password" required autocomplete="new-password" />
+      <button type="submit">Register</button>
+      <div class="error" id="registerError"></div>
+    </form>
+    <div class="toggle-link" id="showLogin">Back to login</div>
+  </div>
+
+<script>
+  // Toggle forms
+  const loginContainer = document.getElementById('loginContainer');
+  const registerContainer = document.getElementById('registerContainer');
+  const showRegisterLink = document.getElementById('showRegister');
+  const showLoginLink = document.getElementById('showLogin');
+
+  showRegisterLink.addEventListener('click', () => {
+    loginContainer.style.display = 'none';
+    registerContainer.style.display = 'flex';
+    clearErrors();
+  });
+
+  showLoginLink.addEventListener('click', () => {
+    registerContainer.style.display = 'none';
+    loginContainer.style.display = 'flex';
+    clearErrors();
+  });
+
+  function clearErrors() {
+    document.getElementById('loginError').textContent = '';
+    document.getElementById('registerError').textContent = '';
+  }
+
+  // ✅ Login Form - NOW USES BACKEND API
+  document.getElementById('loginForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    clearErrors();
+    const username = e.target.username.value.trim();
+    const password = e.target.password.value.trim();
+
+    fetch('http://localhost:3000/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.status === 'success') {
+        sessionStorage.setItem('loggedInUser', username);
+        window.location.href = 'Homepage.html'; // redirect to homepage
+      } else {
+        document.getElementById('loginError').textContent = data.message || 'Login failed';
+      }
+    })
+    .catch(err => {
+      console.error('Login error:', err);
+      document.getElementById('loginError').textContent = 'Server error';
+    });
+  });
+
+  // 🚫 Registration form still uses localStorage (you can ignore/remove it if you only use the DB)
+</script>
+</body>
+</html>
+

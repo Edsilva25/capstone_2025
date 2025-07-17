@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Home - Alumni Management System</title>
+  <style>
+    :root {
+      --ksu-gold: #ffc61a;
+      --ksu-black: #000;
+      --ksu-grey: #f4f4f4;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--ksu-grey);
+      color: var(--ksu-black);
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+      align-items: center;
+      text-align: center;
+    }
+
+.header {
+  background-color: var(--ksu-gold);
+  width: 100%;
+  padding: 2rem 1rem;
+  display: flex;
+  justify-content: center; /* Center the content horizontally */
+  align-items: center;
+  position: relative;      /* For absolute positioning of the button */
+  box-sizing: border-box;
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+.home-button {
+  position: absolute;
+  right: 2rem;
+  background-color: #000;
+  color: #ffc61a;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 5px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.home-button:hover {
+  background-color: #222;
+}
+
+
+    .logo {
+      margin: 3rem auto 1.5rem;
+    }
+
+    .logo img {
+      max-width: 600px;
+      width: 100%;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 2rem;
+      margin-bottom: 2rem;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .button-group button {
+      background-color: var(--ksu-gold);
+      color: var(--ksu-black);
+      border: none;
+      border-radius: 6px;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+
+    .button-group button:hover {
+      background-color: #e6b800;
+    }
+
+    footer {
+      margin-top: auto;
+      padding: 1rem;
+      background-color: #ddd;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h2>Welcome to the Alumni Management System</h2>
+  </div>
+
+  <div class="logo">
+    <img src="ksu.png" alt="KSU Logo" />
+  </div>
+
+  <h1>Manage Alumni Records with Confidence</h1>
+
+  <div class="button-group">
+    <button onclick="location.href='alumni.html'">Alumni Information</button>
+    <button onclick="location.href='Donations.html'">Donations</button>
+    <button onclick="location.href='SkillSet.html'">Specialized Skills</button>
+    <button onclick="location.href='currentalumni.html'">Current Alumni</button>
+  </div>
+
+  <footer>
+    &copy; 2025 Alumni Management System | Group 2
+  </footer>
+
+</body>
+</html>
