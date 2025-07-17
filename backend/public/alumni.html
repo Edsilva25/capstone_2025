@@ -178,23 +178,31 @@
   const editId = urlParams.get('editId');
 
   function loadAlumni() {
-    fetch(`${BASE_URL}/alumni`)
-      .then(res => res.json())
-      .then(data => {
-        const list = document.getElementById('alumni-list');
-        list.innerHTML = '';
-        if (data.status === 'success' && data.data.length > 0) {
-          data.data.forEach(alum => {
-            const li = document.createElement('li');
-            li.textContent = `ID: ${alum.alumniID} - ${alum.firstName} ${alum.lastName} (${alum.email || 'No email'})`;
-            list.appendChild(li);
-          });
-        } else {
-          list.innerHTML = '<li>No alumni found.</li>';
-        }
-      })
-      .catch(err => console.error('Error loading alumni:', err));
-  }
+fetch(`${BASE_URL}/alumni`, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(data)
+})
+  .then(async res => {
+    const text = await res.text();
+    try {
+      const json = JSON.parse(text);
+      if (res.ok && json.status === 'success') {
+        alert('Alumni added!');
+        window.location.href = 'currentalumni.html';
+      } else {
+        console.error('❌ Server responded with error:', json);
+        alert(json.message || 'Failed to add alumni.');
+      }
+    } catch (parseError) {
+      console.error('❌ Non-JSON error from server:', text);
+      alert('Unexpected server response.');
+    }
+  })
+  .catch(err => {
+    console.error('❌ Network or fetch error:', err);
+    alert('Network error.');
+  });
 
   loadAlumni();
 
