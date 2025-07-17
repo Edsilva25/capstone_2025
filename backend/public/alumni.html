@@ -174,12 +174,12 @@
 
   <!-- HEAD AND BODY SETUP OMITTED FOR BREVITY (same as yours) -->
 <script>
+  const BASE_URL = 'https://capstone-2025-6rjg.onrender.com/api';
   const urlParams = new URLSearchParams(window.location.search);
   const editId = urlParams.get('editId');
 
-  // Load alumni
   function loadAlumni() {
-    fetch('http://localhost:3000/api/alumni')
+    fetch(`${BASE_URL}/alumni`)
       .then(res => res.json())
       .then(data => {
         const list = document.getElementById('alumni-list');
@@ -194,9 +194,7 @@
           list.innerHTML = '<li>No alumni found.</li>';
         }
       })
-      .catch(err => {
-        console.error('Error loading alumni:', err);
-      });
+      .catch(err => console.error('Error loading alumni:', err));
   }
 
   loadAlumni();
@@ -207,8 +205,7 @@
   if (editId) {
     document.querySelector('section h2').textContent = 'Edit Alumni';
 
-    // Load alumni info
-    fetch(`http://localhost:3000/api/alumni/${editId}`)
+    fetch(`${BASE_URL}/alumni/${editId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
@@ -220,8 +217,7 @@
         }
       });
 
-    // Load degree info
-    fetch(`http://localhost:3000/api/degree/byAlumni/${editId}`)
+    fetch(`${BASE_URL}/degree/byAlumni/${editId}`)
       .then(res => res.json())
       .then(data => {
         if (data.status === 'success') {
@@ -232,10 +228,8 @@
         }
       });
 
-    // Hide and auto-fill alumni ID field in degree form
     degreeForm.alumniID.value = editId;
 
-    // Submit: update alumni
     alumniForm.addEventListener('submit', function (e) {
       e.preventDefault();
       const alumniData = {
@@ -245,7 +239,7 @@
         phone: alumniForm.phone.value
       };
 
-      fetch(`http://localhost:3000/api/alumni/${editId}`, {
+      fetch(`${BASE_URL}/alumni/${editId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(alumniData)
@@ -261,7 +255,6 @@
         });
     });
 
-    // Submit: update degree
     degreeForm.addEventListener('submit', function (e) {
       e.preventDefault();
       const degreeData = {
@@ -270,7 +263,7 @@
         graduationYear: degreeForm.graduationYear.value
       };
 
-      fetch(`http://localhost:3000/api/degree/byAlumni/${editId}`, {
+      fetch(`${BASE_URL}/degree/byAlumni/${editId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(degreeData)
@@ -287,7 +280,6 @@
     });
 
   } else {
-    // ✅ ADD MODE — FIXED VERSION
     alumniForm.addEventListener('submit', function (e) {
       e.preventDefault();
       const data = {
@@ -297,7 +289,7 @@
         phone: alumniForm.phone.value
       };
 
-      fetch('http://localhost:3000/api/alumni', {
+      fetch(`${BASE_URL}/alumni`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -317,153 +309,6 @@
         });
     });
 
-  // ✅ Address Form
-  document.getElementById('addressForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    const form = e.target;
-    const data = {
-      street: form.address.value,
-      city: form.city.value,
-      state: form.state.value,
-      zipCode: form.zipCode.value,
-      country: form.type.value
-    };
-
-    fetch('http://localhost:3000/api/address', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    })
-      .then(res => res.json())
-      .then(result => {
-        alert(result.message || 'Address saved!');
-        form.reset();
-      })
-      .catch(err => {
-        console.error('Address error:', err);
-      });
-  });
-
-  // ✅ Degree Form (Insert Mode)
-  degreeForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    const form = e.target;
-    const data = {
-      degreeName: form.degreeName.value,
-      major: form.major.value,
-      graduationYear: form.graduationYear.value,
-      alumniID: form.alumniID.value
-    };
-
-    fetch('http://localhost:3000/api/degree', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    })
-      .then(res => res.json())
-      .then(result => {
-        alert(result.message || 'Degree saved!');
-        form.reset();
-      })
-      .catch(err => {
-        console.error('Degree error:', err);
-      });
-  });
-
-  // ✅ Employment Form
-  document.getElementById('employmentForm').addEventListener('submit', function (e) {
-    e.preventDefault();
-    const form = e.target;
-    const data = {
-      companyName: form.companyName.value,
-      position: form.position.value,
-      startDate: form.startDate.value,
-      endDate: form.endDate.value || null,
-      currentJob: form.currentJob.checked,
-      alumniID: form.alumniID.value
-    };
-
-    fetch('http://localhost:3000/api/employment', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    })
-      .then(res => res.json())
-      .then(result => {
-        alert(result.message || 'Employment saved!');
-        form.reset();
-      })
-      .catch(err => {
-        console.error('Employment error:', err);
-        alert('Failed to save employment.');
-      });
-  });
-
-  // ✅ Donation Form
-  document.getElementById('donationForm')?.addEventListener('submit', function (e) {
-    e.preventDefault();
-    const form = e.target;
-    const data = {
-      amount: form.amount.value,
-      donationDate: form.donationDate.value,
-      donationType: form.donationType.value,
-      alumniID: form.alumniID.value
-    };
-
-    fetch('http://localhost:3000/api/donation', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    })
-      .then(res => res.json())
-      .then(result => {
-        alert(result.message || 'Donation saved!');
-        form.reset();
-      })
-      .catch(err => {
-        console.error('Donation error:', err);
-        alert('Failed to save donation.');
-      });
-  });
-
-
-
-
-  // ✅ Submit handler: update degree ONLY
-  degreeForm.addEventListener('submit', function (e) {
-    e.preventDefault();
-    const degreeData = {
-      degreeName: degreeForm.degreeName.value,
-      major: degreeForm.major.value,
-      graduationYear: degreeForm.graduationYear.value
-    };
-
-    fetch(`http://localhost:3000/api/degree/byAlumni/${editId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(degreeData)
-    })
-      .then(res => res.json())
-      .then(result => {
-        if (result.status === 'success') {
-          alert('Degree info updated!');
-          window.location.href = 'currentalumni.html';
-        } else {
-          throw new Error(result.message);
-        }
-      })
-      .catch(err => {
-        console.error('Degree update error:', err);
-        alert('Failed to update degree.');
-      });
-  });
-}
-
-
-
-
-
-    // Address Form
     document.getElementById('addressForm').addEventListener('submit', function (e) {
       e.preventDefault();
       const form = e.target;
@@ -475,7 +320,7 @@
         country: form.type.value
       };
 
-      fetch('http://localhost:3000/api/address', {
+      fetch(`${BASE_URL}/address`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
@@ -485,67 +330,87 @@
           alert(result.message || 'Address saved!');
           form.reset();
         })
+        .catch(err => console.error('Address error:', err));
+    });
+
+    degreeForm.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        degreeName: form.degreeName.value,
+        major: form.major.value,
+        graduationYear: form.graduationYear.value,
+        alumniID: form.alumniID.value
+      };
+
+      fetch(`${BASE_URL}/degree`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+        .then(res => res.json())
+        .then(result => {
+          alert(result.message || 'Degree saved!');
+          form.reset();
+        })
+        .catch(err => console.error('Degree error:', err));
+    });
+
+    document.getElementById('employmentForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        companyName: form.companyName.value,
+        position: form.position.value,
+        startDate: form.startDate.value,
+        endDate: form.endDate.value || null,
+        currentJob: form.currentJob.checked,
+        alumniID: form.alumniID.value
+      };
+
+      fetch(`${BASE_URL}/employment`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+        .then(res => res.json())
+        .then(result => {
+          alert(result.message || 'Employment saved!');
+          form.reset();
+        })
         .catch(err => {
-          console.error('Address error:', err);
+          console.error('Employment error:', err);
+          alert('Failed to save employment.');
         });
     });
 
-  
-// Employment Form
-document.getElementById('employmentForm').addEventListener('submit', function (e) {
-  e.preventDefault();
-  const form = e.target;
-  const data = {
-    companyName: form.companyName.value,
-    position: form.position.value,
-    startDate: form.startDate.value,
-    endDate: form.endDate.value || null,
-    currentJob: form.currentJob.checked,
-    alumniID: form.alumniID.value
-  };
+    document.getElementById('donationForm')?.addEventListener('submit', function (e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = {
+        amount: form.amount.value,
+        donationDate: form.donationDate.value,
+        donationType: form.donationType.value,
+        alumniID: form.alumniID.value
+      };
 
-  fetch('http://localhost:3000/api/employment', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
-    .then(res => res.json())
-    .then(result => {
-      alert(result.message || 'Employment saved!');
-      form.reset();
-    })
-    .catch(err => {
-      console.error('Employment error:', err);
-      alert('Failed to save employment.');
+      fetch(`${BASE_URL}/donation`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      })
+        .then(res => res.json())
+        .then(result => {
+          alert(result.message || 'Donation saved!');
+          form.reset();
+        })
+        .catch(err => {
+          console.error('Donation error:', err);
+          alert('Failed to save donation.');
+        });
     });
-});
-// Donation Form
-document.getElementById('donationForm').addEventListener('submit', function (e) {
-  e.preventDefault();
-  const form = e.target;
-  const data = {
-    amount: form.amount.value,
-    donationDate: form.donationDate.value,
-    donationType: form.donationType.value,
-    alumniID: form.alumniID.value
-  };
+  }
+</script>
 
-  fetch('http://localhost:3000/api/donation', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data)
-  })
-    .then(res => res.json())
-    .then(result => {
-      alert(result.message || 'Donation saved!');
-      form.reset();
-    })
-    .catch(err => {
-      console.error('Donation error:', err);
-      alert('Failed to save donation.');
-    });
-});
-
-  </script>
 </body>
 </html>
