@@ -60,7 +60,12 @@ app.get('/api/ping', (req, res) => {
   res.json({ message: 'API is alive 🔥' });
 });
 
-// 404 fallback
+// Test route (temporary)
+app.post('/api/test-login', (req, res) => {
+  res.json({ status: 'success', message: 'This route is working!' });
+});
+
+// 404 fallback (MUST be last)
 app.use((req, res) => {
   res.status(404).json({ status: 'error', message: 'Route not found' });
 });
