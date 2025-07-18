@@ -67,35 +67,22 @@ router.put('/:id', (req, res) => {
 router.get('/', (req, res) => {
   const query = `
     SELECT 
-      a.alumniID, 
-      a.fName AS firstName, 
-      a.lName AS lastName, 
-      a.email,
-      (
-        SELECT d.degreeName 
-        FROM degree d 
-        WHERE d.alumniID = a.alumniID 
-        ORDER BY d.graduationYear DESC 
-        LIMIT 1
-      ) AS degreeName,
-      (
-        SELECT d.graduationYear 
-        FROM degree d 
-        WHERE d.alumniID = a.alumniID 
-        ORDER BY d.graduationYear DESC 
-        LIMIT 1
-      ) AS graduationYear
-    FROM alumni a
+      alumniID, 
+      fName AS firstName, 
+      lName AS lastName, 
+      email
+    FROM alumni
   `;
 
   db.query(query, (err, results) => {
     if (err) {
-      console.error('Error fetching alumni with degrees:', err);
+      console.error('Error fetching alumni:', err);
       return res.status(500).json({ status: 'error', message: 'Database error' });
     }
     res.json({ status: 'success', data: results });
   });
 });
+
 
 
 
