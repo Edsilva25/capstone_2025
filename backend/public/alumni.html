@@ -197,39 +197,88 @@
     });
 }
 
+const urlParams = new URLSearchParams(window.location.search);
+const editId = urlParams.get('editId');
+
+if (editId) {
+  fetch(`${BASE_URL}/alumni`)
+    .then(res => res.json())
+    .then(data => {
+      const alum = data.data.find(a => a.alumniID == editId);
+      if (alum) {
+        document.querySelector('input[name="fName"]').value = alum.firstName;
+        document.querySelector('input[name="lName"]').value = alum.lastName;
+        document.querySelector('input[name="email"]').value = alum.email || '';
+        document.querySelector('input[name="phone"]').value = alum.phone || '';
+      }
+    });
+
+  // ✅ Only run this when editing
+  document.getElementById('addAlumniForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const data = {
+      fName: this.fName.value,
+      lName: this.lName.value,
+      email: this.email.value,
+      phone: this.phone.value
+    };
+
+    fetch(`${BASE_URL}/alumni/${editId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.status === 'success') {
+          alert('Alumni updated!');
+          window.location.href = 'currentalumni.html';
+        } else {
+          alert(result.message || 'Update failed.');
+        }
+      })
+      .catch(err => {
+        console.error('Update error:', err);
+        alert('Server error.');
+      });
+  });
+
+} else {
+  // ✅ Only run this when adding
+  document.getElementById('addAlumniForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+    const form = e.target;
+    const data = {
+      fName: form.fName.value,
+      lName: form.lName.value,
+      email: form.email.value,
+      phone: form.phone.value
+    };
+
+    fetch(`${BASE_URL}/alumni`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    })
+      .then(res => res.json())
+      .then(result => {
+        if (result.status === 'success') {
+          alert('Alumni added!');
+          form.reset();
+          loadAlumni();
+        } else {
+          alert(result.message || 'Failed to add alumni.');
+        }
+      })
+      .catch(err => {
+        console.error('Add error:', err);
+        alert('Server error.');
+      });
+  });
+}
+
 
     loadAlumni();
-
-    document.getElementById('addAlumniForm').addEventListener('submit', function (e) {
-      e.preventDefault();
-      const form = e.target;
-      const data = {
-        fName: form.fName.value,
-        lName: form.lName.value,
-        email: form.email.value,
-        phone: form.phone.value
-      };
-
-      fetch(`${BASE_URL}/alumni`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
-        .then(res => res.json())
-        .then(result => {
-          if (result.status === 'success') {
-            alert('Alumni added!');
-            form.reset();
-            loadAlumni();
-          } else {
-            alert(result.message || 'Failed to add alumni.');
-          }
-        })
-        .catch(err => {
-          console.error('Add error:', err);
-          alert('Server error.');
-        });
-    });
 
     document.getElementById('addressForm').addEventListener('submit', function (e) {
       e.preventDefault();
