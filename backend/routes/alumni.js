@@ -83,6 +83,25 @@ router.get('/', (req, res) => {
   });
 });
 
+// ✅ This is the missing one
+router.get('/:id', (req, res) => {
+  const alumniID = req.params.id;
+  const sql = `
+    SELECT alumniID, fName AS firstName, lName AS lastName, email, phone
+    FROM alumni
+    WHERE alumniID = ?
+  `;
+  db.query(sql, [alumniID], (err, results) => {
+    if (err) {
+      console.error('Error fetching alumni by ID:', err);
+      return res.status(500).json({ status: 'error', message: 'Database error' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'Alumni not found' });
+    }
+    res.json({ status: 'success', data: results[0] });
+  });
+});
 
 
 
