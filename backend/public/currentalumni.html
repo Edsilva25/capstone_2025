@@ -139,7 +139,7 @@
 
   <script>
     function loadAlumni() {
-      fetch('http://localhost:3000/api/alumni')
+      fetch('https://capstone-2025-6rjg.onrender.com/api/alumni')
         .then(res => res.json())
         .then(data => {
           const tbody = document.querySelector('#alumniTable tbody');
@@ -150,7 +150,7 @@
               const tr = document.createElement('tr');
               tr.innerHTML = `
                 <td><input type="radio" name="selectedAlumni" value="${alum.alumniID}"></td>
-                <td>${alum.firstName} ${alum.lastName}</td>
+                <td>${alum.fName} ${alum.lName}</td>
                 <td>${alum.email || '-'}</td>
                 <td>${alum.graduationYear || '-'}</td>
                 <td>${alum.degreeName || '-'}</td>
@@ -186,7 +186,7 @@
       }
       if (confirm("Are you sure you want to delete this alumni?")) {
         const alumniID = selected.value;
-        fetch(`http://localhost:3000/api/alumni/${alumniID}`, {
+        fetch(`https://capstone-2025-6rjg.onrender.com/api/alumni/${alumniID}`, {
           method: 'DELETE'
         })
         .then(res => res.json())
