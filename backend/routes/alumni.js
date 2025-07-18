@@ -68,8 +68,8 @@ router.get('/', (req, res) => {
   const query = `
     SELECT 
       a.alumniID, 
-      a.firstName, 
-      a.lastName, 
+      a.fName AS firstName, 
+      a.lName AS lastName, 
       a.email,
       (
         SELECT d.degreeName 
@@ -96,6 +96,7 @@ router.get('/', (req, res) => {
     res.json({ status: 'success', data: results });
   });
 });
+
 
 
 
