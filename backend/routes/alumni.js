@@ -12,7 +12,7 @@ router.post('/', (req, res) => {
     return res.status(400).json({ status: 'error', message: 'First and last name are required' });
   }
 
-  const insert = 'INSERT INTO alumni (firstName, lastName, email, phone) VALUES (?, ?, ?, ?)';
+  const insert = 'INSERT INTO alumni (fName, lName, email, phone) VALUES (?, ?, ?, ?)';
   db.query(insert, [fName, lName, email || null, phone || null], (err, result) => {
     if (err) {
       console.error('Error adding alumni:', err);
@@ -46,10 +46,10 @@ router.put('/:id', (req, res) => {
   const { fName, lName, email, phone } = req.body;
 
   const sql = `
-    UPDATE alumni 
-    SET firstName = ?, lastName = ?, email = ?, phone = ? 
-    WHERE alumniID = ?
-  `;
+  UPDATE alumni 
+  SET fName = ?, lName = ?, email = ?, phone = ? 
+  WHERE alumniID = ?
+`;
 
   db.query(sql, [fName, lName, email, phone, alumniID], (err, result) => {
     if (err) {
