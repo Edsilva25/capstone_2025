@@ -142,6 +142,7 @@
       fetch('https://capstone-2025-6rjg.onrender.com/api/alumni')
         .then(res => res.json())
         .then(data => {
+          console.log('🎯 Fetched data:', data);
           const tbody = document.querySelector('#alumniTable tbody');
           tbody.innerHTML = '';
 
@@ -150,7 +151,7 @@
               const tr = document.createElement('tr');
               tr.innerHTML = `
                 <td><input type="radio" name="selectedAlumni" value="${alum.alumniID}"></td>
-                <td>${alum.fName} ${alum.lName}</td>
+                <td>${alum.firstName} ${alum.lastName}</td>
                 <td>${alum.email || '-'}</td>
                 <td>${alum.graduationYear || '-'}</td>
                 <td>${alum.degreeName || '-'}</td>
