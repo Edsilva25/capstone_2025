@@ -185,7 +185,7 @@
           if (data.status === 'success' && data.data.length > 0) {
             data.data.forEach(alum => {
               const li = document.createElement('li');
-              li.textContent = `ID: ${alum.alumniID} - ${alum.fName} ${alum.lName} (${alum.email || 'No email'})`;
+              li.textContent = `ID: ${alum.alumniID} - ${alum.firstName} ${alum.lastName} (${alum.email || 'No email'})`;
               list.appendChild(li);
             });
           } else {
