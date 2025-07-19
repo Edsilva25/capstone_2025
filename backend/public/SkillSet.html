@@ -96,9 +96,21 @@
 
   <div class="content">
     <form id="skillsetForm">
-      <input name="skillName" placeholder="Skill Name (e.g. JavaScript)" required />
-      <input name="proficiencyLevel" placeholder="Proficiency (e.g. Advanced)" required />
-      <input name="alumniID" type="number" placeholder="Alumni ID" required />
+      <label for="alumniID">Alumni ID</label>
+      <input type="number" id="alumniID" name="alumniID" required placeholder="Enter alumni ID" />
+
+      <label for="skillName">Skill Name</label>
+      <input type="text" id="skillName" name="skillName" required placeholder="e.g. JavaScript, Python, Project Management" />
+
+      <label for="skillLevel">Skill Level</label>
+      <select id="skillLevel" name="skillLevel" required>
+        <option value="">Select skill level</option>
+        <option value="Beginner">Beginner</option>
+        <option value="Intermediate">Intermediate</option>
+        <option value="Advanced">Advanced</option>
+        <option value="Expert">Expert</option>
+      </select>
+
       <button type="submit">Save Skill</button>
     </form>
   </div>
@@ -109,25 +121,35 @@
       e.preventDefault();
       const form = e.target;
       const data = {
+        alumniID: parseInt(form.alumniID.value),
         skillName: form.skillName.value,
-        proficiencyLevel: form.proficiencyLevel.value,
-        alumniID: form.alumniID.value
+        skillLevel: form.skillLevel.value
       };
 
-      fetch('http://localhost:3000/api/skillset', {
+      console.log('🎯 Sending skillset data:', data);
+
+      fetch('https://capstone-2025-6rjg.onrender.com/api/skillset', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
-      .then(res => res.json())
-      .then(result => {
-        alert(result.message || 'Skill saved!');
-        form.reset();
-      })
-      .catch(err => {
-        console.error('Skillset error:', err);
-        alert('Failed to save skill.');
-      });
+        .then(res => {
+          console.log('🎯 Response status:', res.status);
+          return res.json();
+        })
+        .then(result => {
+          console.log('🎯 Skillset API response:', result);
+          if (result.status === 'success') {
+            alert(result.message || 'Skill saved!');
+            form.reset();
+          } else {
+            alert('Error: ' + (result.details || result.message || 'Failed to save skill'));
+          }
+        })
+        .catch(err => {
+          console.error('🎯 Skillset error:', err);
+          alert('Failed to save skill: ' + err.message);
+        });
     });
   </script>
 </body>
