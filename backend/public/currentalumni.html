@@ -115,7 +115,7 @@
 </div>
 
   <div class="button-bar">
-    <button onclick="window.location.href='Alumni.html'">Add New Alumni</button>
+    <button onclick="window.location.href='alumni.html'">Add New Alumni</button>
     <button onclick="editSelectedAlumni()">Edit Alumni</button>
     <button onclick="deleteSelectedAlumni()">Delete Alumni</button>
   </div>
@@ -176,7 +176,7 @@
         return;
       }
       const id = selected.value;
-      window.location.href = `Alumni.html?editId=${id}`;
+      window.location.href = `alumni.html?editId=${id}`;
     }
 
     function deleteSelectedAlumni() {
