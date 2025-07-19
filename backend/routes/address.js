@@ -43,24 +43,62 @@ router.get('/:id', (req, res) => {
 router.post('/', (req, res) => {
   const { alumniID, street, city, state, zip, primaryYN, mailingYN } = req.body;
 
+  console.log('🎯 Address POST request received:', { alumniID, street, city, state, zip, primaryYN, mailingYN });
+
   if (!alumniID || !street || !city || !state || !zip) {
+    console.log('❌ Missing required fields:', { alumniID, street, city, state, zip });
     return res.status(400).json({
       status: 'error',
       message: 'Required fields are missing (alumniID, street, city, state, zip)',
     });
   }
 
-  const insert = 'INSERT INTO address (alumniID, street, city, state, zip, primaryYN, mailingYN) VALUES (?, ?, ?, ?, ?, ?, ?)';
-  db.query(insert, [alumniID, street, city, state, zip, primaryYN || 0, mailingYN || 0], (err, result) => {
+  // First, check if the alumni exists
+  db.query('SELECT alumniID FROM alumni WHERE alumniID = ?', [alumniID], (err, results) => {
     if (err) {
-      console.error('Error inserting address:', err);
-      return res.status(500).json({ status: 'error', message: 'Failed to insert address' });
+      console.error('❌ Error checking alumni existence:', err);
+      return res.status(500).json({ 
+        status: 'error', 
+        message: 'Database error checking alumni',
+        details: err.message 
+      });
     }
 
-    res.json({
-      status: 'success',
-      message: 'Address saved successfully',
-      addressID: result.insertId,
+    if (results.length === 0) {
+      console.log('❌ Alumni not found with ID:', alumniID);
+      return res.status(400).json({
+        status: 'error',
+        message: `Alumni with ID ${alumniID} does not exist. Please enter a valid Alumni ID.`,
+      });
+    }
+
+    console.log('✅ Alumni found, proceeding with address insertion');
+
+    // Now insert the address
+    const insert = 'INSERT INTO address (alumniID, street, city, state, zip, primaryYN, mailingYN) VALUES (?, ?, ?, ?, ?, ?, ?)';
+    const values = [alumniID, street, city, state, zip, primaryYN || 0, mailingYN || 0];
+    
+    console.log('🎯 SQL Query:', insert);
+    console.log('🎯 Values:', values);
+
+    db.query(insert, values, (err, result) => {
+      if (err) {
+        console.error('❌ Database error inserting address:', err);
+        console.error('❌ Error code:', err.code);
+        console.error('❌ Error message:', err.message);
+        return res.status(500).json({ 
+          status: 'error', 
+          message: 'Failed to insert address',
+          details: err.message 
+        });
+      }
+
+      console.log('✅ Address inserted successfully, ID:', result.insertId);
+      res.json({
+        status: 'success',
+        message: 'Address saved successfully',
+        addressID: result.insertId,
+      });
     });
   });
 });

@@ -308,19 +308,29 @@ if (editId) {
         mailingYN: form.mailingYN.checked ? 1 : 0
       };
 
+      console.log('🎯 Sending address data:', data);
+
       fetch(`${BASE_URL}/address`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
-        .then(res => res.json())
+        .then(res => {
+          console.log('🎯 Response status:', res.status);
+          return res.json();
+        })
         .then(result => {
-          alert(result.message || 'Address saved!');
-          form.reset();
+          console.log('🎯 Address API response:', result);
+          if (result.status === 'success') {
+            alert(result.message || 'Address saved!');
+            form.reset();
+          } else {
+            alert('Error: ' + (result.details || result.message || 'Failed to save address'));
+          }
         })
         .catch(err => {
-          console.error('Address error:', err);
-          alert('Failed to save address.');
+          console.error('🎯 Address error:', err);
+          alert('Failed to save address: ' + err.message);
         });
     });
 
