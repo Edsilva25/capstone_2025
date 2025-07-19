@@ -110,22 +110,14 @@
 
   <div class="content">
     <form id="donationForm">
-      <label for="donationType">Donation Type</label>
-      <select id="donationType" name="donationType" required>
-        <option value="">Select type</option>
-        <option value="Scholarship">Scholarship</option>
-        <option value="Event Support">Event Support</option>
-        <option value="General">General</option>
-      </select>
+      <label for="alumniID">Alumni ID</label>
+      <input type="number" id="alumniID" name="alumniID" required placeholder="Enter alumni ID" />
 
       <label for="amount">Amount ($)</label>
       <input type="number" id="amount" name="amount" min="0.01" step="0.01" required />
 
       <label for="donationDate">Donation Date</label>
       <input type="date" id="donationDate" name="donationDate" required />
-
-      <label for="alumniID">Alumni ID</label>
-      <input type="number" id="alumniID" name="alumniID" required placeholder="Enter alumni ID" />
 
       <button type="submit">Submit Donation</button>
     </form>
@@ -137,25 +129,34 @@
       e.preventDefault();
       const form = e.target;
       const data = {
-        amount: form.amount.value,
-        donationDate: form.donationDate.value,
-        donationType: form.donationType.value,
-        alumniID: form.alumniID.value
+        alumniID: parseInt(form.alumniID.value),
+        amount: parseFloat(form.amount.value),
+        donationDate: form.donationDate.value
       };
 
-      fetch('http://localhost:3000/api/donation', {
+      console.log('🎯 Sending donation data:', data);
+
+      fetch('https://capstone-2025-6rjg.onrender.com/api/donation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
-        .then(res => res.json())
+        .then(res => {
+          console.log('🎯 Response status:', res.status);
+          return res.json();
+        })
         .then(result => {
-          alert(result.message || 'Donation saved!');
-          form.reset();
+          console.log('🎯 Donation API response:', result);
+          if (result.status === 'success') {
+            alert(result.message || 'Donation saved!');
+            form.reset();
+          } else {
+            alert('Error: ' + (result.details || result.message || 'Failed to save donation'));
+          }
         })
         .catch(err => {
-          console.error('Donation error:', err);
-          alert('Failed to save donation.');
+          console.error('🎯 Donation error:', err);
+          alert('Failed to save donation: ' + err.message);
         });
     });
   </script>
