@@ -6,7 +6,7 @@ const db = require('../db');
 // GET all donations
 router.get('/', (req, res) => {
   const query = `
-    SELECT donationID, alumniID, amount, donationDate
+    SELECT donationID, alumniID, donationType, amount, donationDate
     FROM donation
   `;
 
@@ -23,7 +23,7 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
   const donationID = req.params.id;
   const sql = `
-    SELECT donationID, alumniID, amount, donationDate
+    SELECT donationID, alumniID, donationType, amount, donationDate
     FROM donation
     WHERE donationID = ?
   `;
@@ -41,15 +41,15 @@ router.get('/:id', (req, res) => {
 
 // POST: Add new donation
 router.post('/', (req, res) => {
-  const { alumniID, amount, donationDate } = req.body;
+  const { alumniID, donationType, amount, donationDate } = req.body;
 
-  console.log('🎯 Donation POST request received:', { alumniID, amount, donationDate });
+  console.log('🎯 Donation POST request received:', { alumniID, donationType, amount, donationDate });
 
-  if (!alumniID || !amount || !donationDate) {
-    console.log('❌ Missing required fields:', { alumniID, amount, donationDate });
+  if (!alumniID || !donationType || !amount || !donationDate) {
+    console.log('❌ Missing required fields:', { alumniID, donationType, amount, donationDate });
     return res.status(400).json({ 
       status: 'error', 
-      message: 'Required fields are missing (alumniID, amount, donationDate)' 
+      message: 'Required fields are missing (alumniID, donationType, amount, donationDate)' 
     });
   }
 
@@ -89,8 +89,8 @@ router.post('/', (req, res) => {
       console.log('🎯 Next donationID will be:', nextID);
 
       // Now insert the donation with the generated ID
-      const insert = 'INSERT INTO donation (donationID, alumniID, amount, donationDate) VALUES (?, ?, ?, ?)';
-      const values = [nextID, alumniID, amount, donationDate];
+      const insert = 'INSERT INTO donation (donationID, alumniID, donationType, amount, donationDate) VALUES (?, ?, ?, ?, ?)';
+      const values = [nextID, alumniID, donationType, amount, donationDate];
       
       console.log('🎯 SQL Query:', insert);
       console.log('🎯 Values:', values);
@@ -121,15 +121,15 @@ router.post('/', (req, res) => {
 // PUT update donation by ID
 router.put('/:id', (req, res) => {
   const donationID = req.params.id;
-  const { alumniID, amount, donationDate } = req.body;
+  const { alumniID, donationType, amount, donationDate } = req.body;
 
   const sql = `
     UPDATE donation 
-    SET alumniID = ?, amount = ?, donationDate = ?
+    SET alumniID = ?, donationType = ?, amount = ?, donationDate = ?
     WHERE donationID = ?
   `;
 
-  db.query(sql, [alumniID, amount, donationDate, donationID], (err, result) => {
+  db.query(sql, [alumniID, donationType, amount, donationDate, donationID], (err, result) => {
     if (err) {
       console.error('Error updating donation:', err);
       return res.status(500).json({ status: 'error', message: 'Failed to update donation' });
