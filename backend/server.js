@@ -30,7 +30,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 // Log all incoming requests (for debugging)
 app.use((req, res, next) => {
-  console.log(`➡️ ${req.method} ${req.url}`);
+  console.log(`➡️ ${req.method} ${req.url} | Headers:`, req.headers['user-agent']?.substring(0, 50) + '...');
   next();
 });
 
@@ -43,10 +43,7 @@ app.use(
   })
 );
 
-// Static frontend files (if using in public folder)
-app.use(express.static(path.join(__dirname, 'public')));
-
-// API Routes
+// API Routes (MUST come before static files)
 app.use('/api/login', loginRoutes);
 app.use('/api/alumni', alumniRoutes);
 app.use('/api/address', addressRoutes);
@@ -54,6 +51,9 @@ app.use('/api/degree', degreeRoutes);
 app.use('/api/employment', employmentRoutes);
 app.use('/api/donation', donationRoutes);
 app.use('/api/skillset', skillsetRoutes);
+
+// Static frontend files (after API routes)
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Health check
 app.get('/api/ping', (req, res) => {

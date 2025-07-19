@@ -201,20 +201,30 @@ const urlParams = new URLSearchParams(window.location.search);
 const editId = urlParams.get('editId');
 
 if (editId) {
-fetch(`${BASE_URL}/alumni/${editId}`)
-  .then(res => res.json())
-  .then(result => {
-    if (result.status === 'success') {
-      const alum = result.data;
-      document.querySelector('input[name="fName"]').value = alum.firstName;
-      document.querySelector('input[name="lName"]').value = alum.lastName;
-      document.querySelector('input[name="email"]').value = alum.email || '';
-      document.querySelector('input[name="phone"]').value = alum.phone || '';
-    } else {
-      alert(result.message || 'Alumni not found.');
-    }
-  })
-  .catch(err => console.error('Fetch error:', err));
+  console.log('🎯 Edit mode detected, editId:', editId);
+  console.log('🎯 Making API call to:', `${BASE_URL}/alumni/${editId}`);
+  
+  fetch(`${BASE_URL}/alumni/${editId}`)
+    .then(res => {
+      console.log('🎯 Response status:', res.status);
+      return res.json();
+    })
+    .then(result => {
+      console.log('🎯 API response:', result);
+      if (result.status === 'success') {
+        const alum = result.data;
+        document.querySelector('input[name="fName"]').value = alum.firstName;
+        document.querySelector('input[name="lName"]').value = alum.lastName;
+        document.querySelector('input[name="email"]').value = alum.email || '';
+        document.querySelector('input[name="phone"]').value = alum.phone || '';
+      } else {
+        alert(result.message || 'Alumni not found.');
+      }
+    })
+    .catch(err => {
+      console.error('🎯 Fetch error:', err);
+      alert('Error loading alumni data: ' + err.message);
+    });
 
 
   // ✅ Only run this when editing
