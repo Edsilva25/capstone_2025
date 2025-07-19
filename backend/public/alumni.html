@@ -130,16 +130,13 @@
   <section>
     <h2>Address Information</h2>
     <form id="addressForm">
-      <input name="address" placeholder="Street Address" required class="form-full" />
+      <input name="alumniID" type="number" placeholder="Alumni ID" required />
+      <input name="street" placeholder="Street Address" required class="form-full" />
       <input name="city" placeholder="City" required />
       <input name="state" placeholder="State" required />
-      <input name="zipCode" placeholder="Zip Code" required />
-      <select name="type" class="form-full">
-        <option value="Home">Home</option>
-        <option value="Work">Work</option>
-      </select>
-      <label><input type="checkbox" name="primary" /> Primary</label>
-      <label><input type="checkbox" name="active" /> Active</label>
+      <input name="zip" placeholder="Zip Code" required />
+      <label><input type="checkbox" name="primaryYN" /> Primary Address</label>
+      <label><input type="checkbox" name="mailingYN" /> Mailing Address</label>
       <button type="submit" class="form-full">Save Address</button>
     </form>
   </section>
@@ -302,11 +299,13 @@ if (editId) {
       e.preventDefault();
       const form = e.target;
       const data = {
-        street: form.address.value,
+        alumniID: parseInt(form.alumniID.value),
+        street: form.street.value,
         city: form.city.value,
         state: form.state.value,
-        zipCode: form.zipCode.value,
-        country: form.type.value
+        zip: form.zip.value,
+        primaryYN: form.primaryYN.checked ? 1 : 0,
+        mailingYN: form.mailingYN.checked ? 1 : 0
       };
 
       fetch(`${BASE_URL}/address`, {
@@ -319,7 +318,10 @@ if (editId) {
           alert(result.message || 'Address saved!');
           form.reset();
         })
-        .catch(err => console.error('Address error:', err));
+        .catch(err => {
+          console.error('Address error:', err);
+          alert('Failed to save address.');
+        });
     });
 
     document.getElementById('degreeForm').addEventListener('submit', function (e) {
