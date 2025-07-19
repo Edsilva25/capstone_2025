@@ -7,11 +7,14 @@ const db = require('../db');
 router.get('/', (req, res) => {
   const query = `
     SELECT 
-      alumniID, 
-      fName AS firstName, 
-      lName AS lastName, 
-      email
-    FROM alumni
+      a.alumniID, 
+      a.fName AS firstName, 
+      a.lName AS lastName, 
+      a.email,
+      d.year AS graduationYear,
+      d.degreeName
+    FROM alumni a
+    LEFT JOIN degree d ON a.alumniID = d.alumniID
   `;
 
   db.query(query, (err, results) => {
