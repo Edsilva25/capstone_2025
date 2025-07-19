@@ -67,7 +67,8 @@ app.post('/api/test-login', (req, res) => {
 
 // 404 fallback (MUST be last)
 app.use((req, res) => {
-  res.status(404).json({ status: 'error', message: 'Route not found' });
+  console.log(`❌ Unmatched route: ${req.method} ${req.originalUrl}`);
+  res.status(404).json({ status: 'error', message: 'Route not found', attempted: req.originalUrl });
 });
 
 // Start server
