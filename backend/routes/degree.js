@@ -6,7 +6,7 @@ const db = require('../db');
 // GET all degrees
 router.get('/', (req, res) => {
   const query = `
-    SELECT degreeID, alumniID, degreeName, school, year
+    SELECT degreeID, alumniID, degreeName, year
     FROM degree
   `;
 
@@ -23,7 +23,7 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
   const degreeID = req.params.id;
   const sql = `
-    SELECT degreeID, alumniID, degreeName, school, year
+    SELECT degreeID, alumniID, degreeName, year
     FROM degree
     WHERE degreeID = ?
   `;
@@ -41,15 +41,15 @@ router.get('/:id', (req, res) => {
 
 // POST: Add new degree
 router.post('/', (req, res) => {
-  const { alumniID, degreeName, school, year } = req.body;
+  const { alumniID, degreeName, year } = req.body;
 
-  console.log('🎯 Degree POST request received:', { alumniID, degreeName, school, year });
+  console.log('🎯 Degree POST request received:', { alumniID, degreeName, year });
 
-  if (!alumniID || !degreeName || !school || !year) {
-    console.log('❌ Missing required fields:', { alumniID, degreeName, school, year });
+  if (!alumniID || !degreeName || !year) {
+    console.log('❌ Missing required fields:', { alumniID, degreeName, year });
     return res.status(400).json({ 
       status: 'error', 
-      message: 'All fields are required (alumniID, degreeName, school, year)' 
+      message: 'All fields are required (alumniID, degreeName, year)' 
     });
   }
 
@@ -89,8 +89,8 @@ router.post('/', (req, res) => {
       console.log('🎯 Next degreeID will be:', nextID);
 
       // Now insert the degree with the generated ID
-      const insert = 'INSERT INTO degree (degreeID, alumniID, degreeName, school, year) VALUES (?, ?, ?, ?, ?)';
-      const values = [nextID, alumniID, degreeName, school, year];
+      const insert = 'INSERT INTO degree (degreeID, alumniID, degreeName, year) VALUES (?, ?, ?, ?)';
+      const values = [nextID, alumniID, degreeName, year];
       
       console.log('🎯 SQL Query:', insert);
       console.log('🎯 Values:', values);
@@ -121,15 +121,15 @@ router.post('/', (req, res) => {
 // PUT update degree by ID
 router.put('/:id', (req, res) => {
   const degreeID = req.params.id;
-  const { alumniID, degreeName, school, year } = req.body;
+  const { alumniID, degreeName, year } = req.body;
 
   const sql = `
     UPDATE degree
-    SET alumniID = ?, degreeName = ?, school = ?, year = ?
+    SET alumniID = ?, degreeName = ?, year = ?
     WHERE degreeID = ?
   `;
 
-  db.query(sql, [alumniID, degreeName, school, year, degreeID], (err, result) => {
+  db.query(sql, [alumniID, degreeName, year, degreeID], (err, result) => {
     if (err) {
       console.error('Error updating degree:', err);
       return res.status(500).json({ status: 'error', message: 'Failed to update degree' });

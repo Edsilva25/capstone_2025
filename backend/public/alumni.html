@@ -146,7 +146,6 @@
     <form id="degreeForm">
       <input name="alumniID" type="number" placeholder="Alumni ID" required />
       <input name="degreeName" placeholder="Degree (e.g. BS, MS)" required />
-      <input name="school" placeholder="School/Institution" required />
       <input name="year" type="number" placeholder="Graduation Year" required />
       <button type="submit" class="form-full">Add Degree</button>
     </form>
@@ -340,7 +339,6 @@ if (editId) {
       const data = {
         alumniID: parseInt(form.alumniID.value),
         degreeName: form.degreeName.value,
-        school: form.school.value,
         year: parseInt(form.year.value)
       };
 
