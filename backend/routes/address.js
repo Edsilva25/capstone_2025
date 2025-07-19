@@ -74,30 +74,45 @@ router.post('/', (req, res) => {
 
     console.log('✅ Alumni found, proceeding with address insertion');
 
-    // Now insert the address
-    const insert = 'INSERT INTO address (alumniID, street, city, state, zip, primaryYN, mailingYN) VALUES (?, ?, ?, ?, ?, ?, ?)';
-    const values = [alumniID, street, city, state, zip, primaryYN || 0, mailingYN || 0];
-    
-    console.log('🎯 SQL Query:', insert);
-    console.log('🎯 Values:', values);
-
-    db.query(insert, values, (err, result) => {
+    // First, get the next available addressID
+    db.query('SELECT MAX(addressID) as maxID FROM address', (err, results) => {
       if (err) {
-        console.error('❌ Database error inserting address:', err);
-        console.error('❌ Error code:', err.code);
-        console.error('❌ Error message:', err.message);
+        console.error('❌ Error getting max addressID:', err);
         return res.status(500).json({ 
           status: 'error', 
-          message: 'Failed to insert address',
+          message: 'Database error getting next ID',
           details: err.message 
         });
       }
 
-      console.log('✅ Address inserted successfully, ID:', result.insertId);
-      res.json({
-        status: 'success',
-        message: 'Address saved successfully',
-        addressID: result.insertId,
+      const nextID = (results[0].maxID || 0) + 1;
+      console.log('🎯 Next addressID will be:', nextID);
+
+      // Now insert the address with the generated ID
+      const insert = 'INSERT INTO address (addressID, alumniID, street, city, state, zip, primaryYN, mailingYN) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+      const values = [nextID, alumniID, street, city, state, zip, primaryYN || 0, mailingYN || 0];
+      
+      console.log('🎯 SQL Query:', insert);
+      console.log('🎯 Values:', values);
+
+      db.query(insert, values, (err, result) => {
+        if (err) {
+          console.error('❌ Database error inserting address:', err);
+          console.error('❌ Error code:', err.code);
+          console.error('❌ Error message:', err.message);
+          return res.status(500).json({ 
+            status: 'error', 
+            message: 'Failed to insert address',
+            details: err.message 
+          });
+        }
+
+        console.log('✅ Address inserted successfully, ID:', nextID);
+        res.json({
+          status: 'success',
+          message: 'Address saved successfully',
+          addressID: nextID,
+        });
       });
     });
   });
