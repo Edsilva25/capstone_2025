@@ -108,6 +108,42 @@
     form button:hover {
       background-color: #e6b800;
     }
+
+    .address-item, .employment-item {
+      background: #f9f9f9;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+
+    .address-item p, .employment-item p {
+      margin: 0.25rem 0;
+    }
+
+    .edit-btn, .delete-btn {
+      background: var(--ksu-gold);
+      color: var(--ksu-black);
+      border: none;
+      padding: 0.5rem 1rem;
+      border-radius: 3px;
+      cursor: pointer;
+      margin-right: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .delete-btn {
+      background: #dc3545;
+      color: white;
+    }
+
+    .edit-btn:hover {
+      background-color: #e6b800;
+    }
+
+    .delete-btn:hover {
+      background-color: #c82333;
+    }
   </style>
 </head>
 <body>
@@ -129,6 +165,10 @@
 
   <section>
     <h2>Address Information</h2>
+    <div id="existingAddresses" style="display: none;">
+      <h3>Current Addresses</h3>
+      <div id="addressList"></div>
+    </div>
     <form id="addressForm">
       <input name="alumniID" type="number" placeholder="Alumni ID" required />
       <input name="street" placeholder="Street Address" required class="form-full" />
@@ -137,7 +177,7 @@
       <input name="zip" placeholder="Zip Code" required />
       <label><input type="checkbox" name="primaryYN" /> Primary Address</label>
       <label><input type="checkbox" name="mailingYN" /> Mailing Address</label>
-      <button type="submit" class="form-full">Save Address</button>
+      <button type="submit" class="form-full" id="addressSubmitBtn">Save Address</button>
     </form>
   </section>
 
@@ -154,13 +194,17 @@
 
   <section>
     <h2>Employment Information</h2>
+    <div id="existingEmployment" style="display: none;">
+      <h3>Current Employment</h3>
+      <div id="employmentList"></div>
+    </div>
     <form id="employmentForm">
       <input name="alumniID" type="number" placeholder="Alumni ID" required />
       <input name="company" placeholder="Company Name" required />
       <input name="position" placeholder="Job Title" required />
       <input name="startDate" type="date" required />
       <input name="endDate" type="date" />
-      <button type="submit" class="form-full">Add Employment</button>
+      <button type="submit" class="form-full" id="employmentSubmitBtn">Add Employment</button>
     </form>
   </section>
 
@@ -217,6 +261,15 @@ if (editId) {
         document.querySelector('input[name="lName"]').value = alum.lastName;
         document.querySelector('input[name="email"]').value = alum.email || '';
         document.querySelector('input[name="phone"]').value = alum.phone || '';
+        
+        // Pre-populate alumni ID in all forms
+        document.querySelectorAll('input[name="alumniID"]').forEach(input => {
+          input.value = editId;
+        });
+        
+        // Load existing address and employment data
+        loadExistingAddresses(editId);
+        loadExistingEmployment(editId);
       } else {
         alert(result.message || 'Alumni not found.');
       }
@@ -294,6 +347,151 @@ if (editId) {
 
     loadAlumni();
 
+    // Function to load existing addresses for an alumni
+    function loadExistingAddresses(alumniID) {
+      fetch(`${BASE_URL}/address`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.status === 'success') {
+            const addresses = result.data.filter(addr => addr.alumniID == alumniID);
+            const addressList = document.getElementById('addressList');
+            const existingAddresses = document.getElementById('existingAddresses');
+            
+            if (addresses.length > 0) {
+              addressList.innerHTML = '';
+              addresses.forEach(addr => {
+                const div = document.createElement('div');
+                div.className = 'address-item';
+                div.innerHTML = `
+                  <p><strong>${addr.street}</strong></p>
+                  <p>${addr.city}, ${addr.state} ${addr.zip}</p>
+                  <p>Primary: ${addr.primaryYN ? 'Yes' : 'No'} | Mailing: ${addr.mailingYN ? 'Yes' : 'No'}</p>
+                  <button onclick="editAddress(${addr.addressID})" class="edit-btn">Edit</button>
+                  <button onclick="deleteAddress(${addr.addressID})" class="delete-btn">Delete</button>
+                `;
+                addressList.appendChild(div);
+              });
+              existingAddresses.style.display = 'block';
+            }
+          }
+        })
+        .catch(err => console.error('Error loading addresses:', err));
+    }
+
+    // Function to load existing employment for an alumni
+    function loadExistingEmployment(alumniID) {
+      fetch(`${BASE_URL}/employment`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.status === 'success') {
+            const employment = result.data.filter(emp => emp.alumniID == alumniID);
+            const employmentList = document.getElementById('employmentList');
+            const existingEmployment = document.getElementById('existingEmployment');
+            
+            if (employment.length > 0) {
+              employmentList.innerHTML = '';
+              employment.forEach(emp => {
+                const div = document.createElement('div');
+                div.className = 'employment-item';
+                div.innerHTML = `
+                  <p><strong>${emp.position}</strong> at ${emp.company}</p>
+                  <p>${emp.startDate} - ${emp.endDate || 'Present'}</p>
+                  <button onclick="editEmployment(${emp.employmentID})" class="edit-btn">Edit</button>
+                  <button onclick="deleteEmployment(${emp.employmentID})" class="delete-btn">Delete</button>
+                `;
+                employmentList.appendChild(div);
+              });
+              existingEmployment.style.display = 'block';
+            }
+          }
+        })
+        .catch(err => console.error('Error loading employment:', err));
+    }
+
+    // Function to edit address
+    window.editAddress = function(addressID) {
+      fetch(`${BASE_URL}/address/${addressID}`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.status === 'success') {
+            const addr = result.data;
+            const form = document.getElementById('addressForm');
+            form.querySelector('input[name="street"]').value = addr.street;
+            form.querySelector('input[name="city"]').value = addr.city;
+            form.querySelector('input[name="state"]').value = addr.state;
+            form.querySelector('input[name="zip"]').value = addr.zip;
+            form.querySelector('input[name="primaryYN"]').checked = addr.primaryYN == 1;
+            form.querySelector('input[name="mailingYN"]').checked = addr.mailingYN == 1;
+            
+            // Change form to update mode
+            document.getElementById('addressSubmitBtn').textContent = 'Update Address';
+            form.dataset.editMode = 'true';
+            form.dataset.editId = addressID;
+          }
+        })
+        .catch(err => console.error('Error loading address:', err));
+    };
+
+    // Function to edit employment
+    window.editEmployment = function(employmentID) {
+      fetch(`${BASE_URL}/employment/${employmentID}`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.status === 'success') {
+            const emp = result.data;
+            const form = document.getElementById('employmentForm');
+            form.querySelector('input[name="company"]').value = emp.company;
+            form.querySelector('input[name="position"]').value = emp.position;
+            form.querySelector('input[name="startDate"]').value = emp.startDate;
+            form.querySelector('input[name="endDate"]').value = emp.endDate || '';
+            
+            // Change form to update mode
+            document.getElementById('employmentSubmitBtn').textContent = 'Update Employment';
+            form.dataset.editMode = 'true';
+            form.dataset.editId = employmentID;
+          }
+        })
+        .catch(err => console.error('Error loading employment:', err));
+    };
+
+    // Function to delete address
+    window.deleteAddress = function(addressID) {
+      if (confirm('Are you sure you want to delete this address?')) {
+        fetch(`${BASE_URL}/address/${addressID}`, {
+          method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(result => {
+          if (result.status === 'success') {
+            alert('Address deleted successfully');
+            loadExistingAddresses(editId);
+          } else {
+            alert('Failed to delete address');
+          }
+        })
+        .catch(err => console.error('Error deleting address:', err));
+      }
+    };
+
+    // Function to delete employment
+    window.deleteEmployment = function(employmentID) {
+      if (confirm('Are you sure you want to delete this employment record?')) {
+        fetch(`${BASE_URL}/employment/${employmentID}`, {
+          method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(result => {
+          if (result.status === 'success') {
+            alert('Employment deleted successfully');
+            loadExistingEmployment(editId);
+          } else {
+            alert('Failed to delete employment');
+          }
+        })
+        .catch(err => console.error('Error deleting employment:', err));
+      }
+    };
+
     document.getElementById('addressForm').addEventListener('submit', function (e) {
       e.preventDefault();
       const form = e.target;
@@ -309,8 +507,13 @@ if (editId) {
 
       console.log('🎯 Sending address data:', data);
 
-      fetch(`${BASE_URL}/address`, {
-        method: 'POST',
+      const isEditMode = form.dataset.editMode === 'true';
+      const editId = form.dataset.editId;
+      const url = isEditMode ? `${BASE_URL}/address/${editId}` : `${BASE_URL}/address`;
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
@@ -321,8 +524,18 @@ if (editId) {
         .then(result => {
           console.log('🎯 Address API response:', result);
           if (result.status === 'success') {
-            alert(result.message || 'Address saved!');
+            alert(result.message || (isEditMode ? 'Address updated!' : 'Address saved!'));
             form.reset();
+            
+            // Reset form to create mode
+            document.getElementById('addressSubmitBtn').textContent = 'Save Address';
+            form.dataset.editMode = 'false';
+            delete form.dataset.editId;
+            
+            // Reload existing addresses if in edit mode
+            if (window.editId) {
+              loadExistingAddresses(window.editId);
+            }
           } else {
             alert('Error: ' + (result.details || result.message || 'Failed to save address'));
           }
@@ -385,8 +598,13 @@ if (editId) {
 
       console.log('🎯 Sending employment data:', data);
 
-      fetch(`${BASE_URL}/employment`, {
-        method: 'POST',
+      const isEditMode = form.dataset.editMode === 'true';
+      const editId = form.dataset.editId;
+      const url = isEditMode ? `${BASE_URL}/employment/${editId}` : `${BASE_URL}/employment`;
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
@@ -397,8 +615,18 @@ if (editId) {
         .then(result => {
           console.log('🎯 Employment API response:', result);
           if (result.status === 'success') {
-            alert(result.message || 'Employment saved!');
+            alert(result.message || (isEditMode ? 'Employment updated!' : 'Employment saved!'));
             form.reset();
+            
+            // Reset form to create mode
+            document.getElementById('employmentSubmitBtn').textContent = 'Add Employment';
+            form.dataset.editMode = 'false';
+            delete form.dataset.editId;
+            
+            // Reload existing employment if in edit mode
+            if (window.editId) {
+              loadExistingEmployment(window.editId);
+            }
           } else {
             alert('Error: ' + (result.details || result.message || 'Failed to save employment'));
           }
