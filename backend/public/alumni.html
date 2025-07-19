@@ -144,9 +144,10 @@
   <section>
     <h2>Degree Information</h2>
     <form id="degreeForm">
-      <input name="alumniID" type="number" placeholder="Alumni ID" required />
-      <input name="degreeName" placeholder="Degree (e.g. BS Computer Science)" required />
-      <input name="year" type="number" placeholder="Graduation Year" required />
+      <input name="degreeName" placeholder="Degree (e.g. BS, MS)" required />
+      <input name="major" placeholder="Major" required />
+      <input name="year" type="number" placeholder="Year Completed" required />
+      <input name="alumniID" type="number" placeholder="Alumni ID (Degree)" required />
       <button type="submit" class="form-full">Add Degree</button>
     </form>
   </section>
@@ -336,9 +337,13 @@ if (editId) {
     document.getElementById('degreeForm').addEventListener('submit', function (e) {
       e.preventDefault();
       const form = e.target;
+      
+      // Combine degree name and major for the database
+      const fullDegreeName = `${form.degreeName.value} ${form.major.value}`.trim();
+      
       const data = {
         alumniID: parseInt(form.alumniID.value),
-        degreeName: form.degreeName.value,
+        degreeName: fullDegreeName,
         year: parseInt(form.year.value)
       };
 
