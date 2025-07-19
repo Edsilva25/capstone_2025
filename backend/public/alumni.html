@@ -155,12 +155,11 @@
   <section>
     <h2>Employment Information</h2>
     <form id="employmentForm">
-      <input name="companyName" placeholder="Company Name" required />
+      <input name="alumniID" type="number" placeholder="Alumni ID" required />
+      <input name="company" placeholder="Company Name" required />
       <input name="position" placeholder="Job Title" required />
       <input name="startDate" type="date" required />
       <input name="endDate" type="date" />
-      <label><input type="checkbox" name="currentJob" /> Current Position</label>
-      <input name="alumniID" type="number" placeholder="Alumni ID" required />
       <button type="submit" class="form-full">Add Employment</button>
     </form>
   </section>
@@ -377,27 +376,36 @@ if (editId) {
       e.preventDefault();
       const form = e.target;
       const data = {
-        companyName: form.companyName.value,
+        alumniID: parseInt(form.alumniID.value),
+        company: form.company.value,
         position: form.position.value,
         startDate: form.startDate.value,
-        endDate: form.endDate.value || null,
-        currentJob: form.currentJob.checked,
-        alumniID: form.alumniID.value
+        endDate: form.endDate.value || null
       };
+
+      console.log('🎯 Sending employment data:', data);
 
       fetch(`${BASE_URL}/employment`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
-        .then(res => res.json())
+        .then(res => {
+          console.log('🎯 Response status:', res.status);
+          return res.json();
+        })
         .then(result => {
-          alert(result.message || 'Employment saved!');
-          form.reset();
+          console.log('🎯 Employment API response:', result);
+          if (result.status === 'success') {
+            alert(result.message || 'Employment saved!');
+            form.reset();
+          } else {
+            alert('Error: ' + (result.details || result.message || 'Failed to save employment'));
+          }
         })
         .catch(err => {
-          console.error('Employment error:', err);
-          alert('Failed to save employment.');
+          console.error('🎯 Employment error:', err);
+          alert('Failed to save employment: ' + err.message);
         });
     });
   </script>
