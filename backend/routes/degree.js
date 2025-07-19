@@ -3,49 +3,160 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db');
 
-// POST: Add new degree
-router.post('/', (req, res) => {
-  const { degreeName, major, graduationYear, alumniID } = req.body;
+// GET all degrees
+router.get('/', (req, res) => {
+  const query = `
+    SELECT degreeID, alumniID, degreeName, school, year
+    FROM degree
+  `;
 
-  if (!degreeName || !major || !graduationYear || !alumniID) {
-    return res.status(400).json({ status: 'error', message: 'All fields are required' });
-  }
-
-  const sql = 'INSERT INTO degree (degreeName, major, graduationYear, alumniID) VALUES (?, ?, ?, ?)';
-  db.query(sql, [degreeName, major, graduationYear, alumniID], (err, result) => {
+  db.query(query, (err, results) => {
     if (err) {
-      console.error('Error inserting degree:', err);
-      return res.status(500).json({ status: 'error', message: 'Failed to save degree' });
+      console.error('Error fetching degrees:', err);
+      return res.status(500).json({ status: 'error', message: 'Database error' });
     }
-    res.json({ status: 'success', message: 'Degree saved' });
+    res.json({ status: 'success', data: results });
   });
 });
 
-// ✅ GET degree by alumni ID
-router.get('/byAlumni/:alumniID', (req, res) => {
-  const id = req.params.alumniID;
-  db.query('SELECT * FROM degree WHERE alumniID = ? LIMIT 1', [id], (err, results) => {
-    if (err) return res.status(500).json({ status: 'error', message: 'Failed to fetch degree' });
-    if (results.length === 0) return res.status(404).json({ status: 'error', message: 'Not found' });
+// GET degree by ID
+router.get('/:id', (req, res) => {
+  const degreeID = req.params.id;
+  const sql = `
+    SELECT degreeID, alumniID, degreeName, school, year
+    FROM degree
+    WHERE degreeID = ?
+  `;
+  db.query(sql, [degreeID], (err, results) => {
+    if (err) {
+      console.error('Error fetching degree by ID:', err);
+      return res.status(500).json({ status: 'error', message: 'Database error' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'Degree not found' });
+    }
     res.json({ status: 'success', data: results[0] });
   });
 });
 
-// ✅ PUT update degree by alumni ID
-router.put('/byAlumni/:alumniID', (req, res) => {
-  const { alumniID } = req.params;
-  const { degreeName, major, graduationYear } = req.body;
+// POST: Add new degree
+router.post('/', (req, res) => {
+  const { alumniID, degreeName, school, year } = req.body;
+
+  console.log('🎯 Degree POST request received:', { alumniID, degreeName, school, year });
+
+  if (!alumniID || !degreeName || !school || !year) {
+    console.log('❌ Missing required fields:', { alumniID, degreeName, school, year });
+    return res.status(400).json({ 
+      status: 'error', 
+      message: 'All fields are required (alumniID, degreeName, school, year)' 
+    });
+  }
+
+  // First, check if the alumni exists
+  db.query('SELECT alumniID FROM alumni WHERE alumniID = ?', [alumniID], (err, results) => {
+    if (err) {
+      console.error('❌ Error checking alumni existence:', err);
+      return res.status(500).json({ 
+        status: 'error', 
+        message: 'Database error checking alumni',
+        details: err.message 
+      });
+    }
+
+    if (results.length === 0) {
+      console.log('❌ Alumni not found with ID:', alumniID);
+      return res.status(400).json({
+        status: 'error',
+        message: `Alumni with ID ${alumniID} does not exist. Please enter a valid Alumni ID.`,
+      });
+    }
+
+    console.log('✅ Alumni found, proceeding with degree insertion');
+
+    // Get the next available degreeID
+    db.query('SELECT MAX(degreeID) as maxID FROM degree', (err, results) => {
+      if (err) {
+        console.error('❌ Error getting max degreeID:', err);
+        return res.status(500).json({ 
+          status: 'error', 
+          message: 'Database error getting next ID',
+          details: err.message 
+        });
+      }
+
+      const nextID = (results[0].maxID || 0) + 1;
+      console.log('🎯 Next degreeID will be:', nextID);
+
+      // Now insert the degree with the generated ID
+      const insert = 'INSERT INTO degree (degreeID, alumniID, degreeName, school, year) VALUES (?, ?, ?, ?, ?)';
+      const values = [nextID, alumniID, degreeName, school, year];
+      
+      console.log('🎯 SQL Query:', insert);
+      console.log('🎯 Values:', values);
+
+      db.query(insert, values, (err, result) => {
+        if (err) {
+          console.error('❌ Database error inserting degree:', err);
+          console.error('❌ Error code:', err.code);
+          console.error('❌ Error message:', err.message);
+          return res.status(500).json({ 
+            status: 'error', 
+            message: 'Failed to insert degree',
+            details: err.message 
+          });
+        }
+
+        console.log('✅ Degree inserted successfully, ID:', nextID);
+        res.json({
+          status: 'success',
+          message: 'Degree saved successfully',
+          degreeID: nextID,
+        });
+      });
+    });
+  });
+});
+
+// PUT update degree by ID
+router.put('/:id', (req, res) => {
+  const degreeID = req.params.id;
+  const { alumniID, degreeName, school, year } = req.body;
 
   const sql = `
     UPDATE degree
-    SET degreeName = ?, major = ?, graduationYear = ?
-    WHERE alumniID = ?
+    SET alumniID = ?, degreeName = ?, school = ?, year = ?
+    WHERE degreeID = ?
   `;
 
-  db.query(sql, [degreeName, major, graduationYear, alumniID], (err, result) => {
-    if (err) return res.status(500).json({ status: 'error', message: 'Update failed' });
-    if (result.affectedRows === 0) return res.status(404).json({ status: 'error', message: 'Not found' });
+  db.query(sql, [alumniID, degreeName, school, year, degreeID], (err, result) => {
+    if (err) {
+      console.error('Error updating degree:', err);
+      return res.status(500).json({ status: 'error', message: 'Failed to update degree' });
+    }
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ status: 'error', message: 'Degree not found' });
+    }
     res.json({ status: 'success', message: 'Degree updated successfully' });
+  });
+});
+
+// DELETE degree by ID
+router.delete('/:id', (req, res) => {
+  const degreeID = req.params.id;
+
+  const sql = 'DELETE FROM degree WHERE degreeID = ?';
+  db.query(sql, [degreeID], (err, result) => {
+    if (err) {
+      console.error('Error deleting degree:', err);
+      return res.status(500).json({ status: 'error', message: 'Failed to delete degree' });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ status: 'error', message: 'Degree not found' });
+    }
+
+    res.json({ status: 'success', message: 'Degree deleted successfully' });
   });
 });
 

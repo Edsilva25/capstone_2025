@@ -144,10 +144,10 @@
   <section>
     <h2>Degree Information</h2>
     <form id="degreeForm">
+      <input name="alumniID" type="number" placeholder="Alumni ID" required />
       <input name="degreeName" placeholder="Degree (e.g. BS, MS)" required />
-      <input name="major" placeholder="Major" required />
-      <input name="graduationYear" type="number" placeholder="Year Completed" required />
-      <input name="alumniID" id="degreeAlumniID" type="number" placeholder="Alumni ID (Degree)" required />
+      <input name="school" placeholder="School/Institution" required />
+      <input name="year" type="number" placeholder="Graduation Year" required />
       <button type="submit" class="form-full">Add Degree</button>
     </form>
   </section>
@@ -338,23 +338,36 @@ if (editId) {
       e.preventDefault();
       const form = e.target;
       const data = {
+        alumniID: parseInt(form.alumniID.value),
         degreeName: form.degreeName.value,
-        major: form.major.value,
-        graduationYear: form.graduationYear.value,
-        alumniID: form.alumniID.value
+        school: form.school.value,
+        year: parseInt(form.year.value)
       };
+
+      console.log('🎯 Sending degree data:', data);
 
       fetch(`${BASE_URL}/degree`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
-        .then(res => res.json())
-        .then(result => {
-          alert(result.message || 'Degree saved!');
-          form.reset();
+        .then(res => {
+          console.log('🎯 Response status:', res.status);
+          return res.json();
         })
-        .catch(err => console.error('Degree error:', err));
+        .then(result => {
+          console.log('🎯 Degree API response:', result);
+          if (result.status === 'success') {
+            alert(result.message || 'Degree saved!');
+            form.reset();
+          } else {
+            alert('Error: ' + (result.details || result.message || 'Failed to save degree'));
+          }
+        })
+        .catch(err => {
+          console.error('🎯 Degree error:', err);
+          alert('Failed to save degree: ' + err.message);
+        });
     });
 
     document.getElementById('employmentForm').addEventListener('submit', function (e) {
