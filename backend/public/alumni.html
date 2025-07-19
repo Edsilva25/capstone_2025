@@ -109,7 +109,7 @@
       background-color: #e6b800;
     }
 
-    .address-item, .employment-item {
+    .address-item, .employment-item, .degree-item {
       background: #f9f9f9;
       border: 1px solid #ddd;
       border-radius: 5px;
@@ -117,7 +117,7 @@
       margin-bottom: 1rem;
     }
 
-    .address-item p, .employment-item p {
+    .address-item p, .employment-item p, .degree-item p {
       margin: 0.25rem 0;
     }
 
@@ -183,12 +183,16 @@
 
   <section>
     <h2>Degree Information</h2>
+    <div id="existingDegrees" style="display: none;">
+      <h3>Current Degrees</h3>
+      <div id="degreeList"></div>
+    </div>
     <form id="degreeForm">
       <input name="degreeName" placeholder="Degree (e.g. BS, MS)" required />
       <input name="major" placeholder="Major" required />
       <input name="year" type="number" placeholder="Year Completed" required />
       <input name="alumniID" type="number" placeholder="Alumni ID (Degree)" required />
-      <button type="submit" class="form-full">Add Degree</button>
+      <button type="submit" class="form-full" id="degreeSubmitBtn">Add Degree</button>
     </form>
   </section>
 
@@ -267,9 +271,10 @@ if (editId) {
           input.value = editId;
         });
         
-        // Load existing address and employment data
+        // Load existing address, employment, and degree data
         loadExistingAddresses(editId);
         loadExistingEmployment(editId);
+        loadExistingDegrees(editId);
       } else {
         alert(result.message || 'Alumni not found.');
       }
@@ -492,6 +497,82 @@ if (editId) {
       }
     };
 
+    // Function to load existing degrees for an alumni
+    function loadExistingDegrees(alumniID) {
+      fetch(`${BASE_URL}/degree`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.status === 'success') {
+            const degrees = result.data.filter(deg => deg.alumniID == alumniID);
+            const degreeList = document.getElementById('degreeList');
+            const existingDegrees = document.getElementById('existingDegrees');
+            
+            if (degrees.length > 0) {
+              degreeList.innerHTML = '';
+              degrees.forEach(deg => {
+                const div = document.createElement('div');
+                div.className = 'degree-item';
+                div.innerHTML = `
+                  <p><strong>${deg.degreeName}</strong></p>
+                  <p>Year: ${deg.year}</p>
+                  <button onclick="editDegree(${deg.degreeID})" class="edit-btn">Edit</button>
+                  <button onclick="deleteDegree(${deg.degreeID})" class="delete-btn">Delete</button>
+                `;
+                degreeList.appendChild(div);
+              });
+              existingDegrees.style.display = 'block';
+            }
+          }
+        })
+        .catch(err => console.error('Error loading degrees:', err));
+    }
+
+    // Function to edit degree
+    window.editDegree = function(degreeID) {
+      fetch(`${BASE_URL}/degree/${degreeID}`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.status === 'success') {
+            const deg = result.data;
+            const form = document.getElementById('degreeForm');
+            
+            // Split the degree name to separate degree type and major
+            const degreeParts = deg.degreeName.split(' ');
+            const degreeType = degreeParts[0] || '';
+            const major = degreeParts.slice(1).join(' ') || '';
+            
+            form.querySelector('input[name="degreeName"]').value = degreeType;
+            form.querySelector('input[name="major"]').value = major;
+            form.querySelector('input[name="year"]').value = deg.year;
+            
+            // Change form to update mode
+            document.getElementById('degreeSubmitBtn').textContent = 'Update Degree';
+            form.dataset.editMode = 'true';
+            form.dataset.editId = degreeID;
+          }
+        })
+        .catch(err => console.error('Error loading degree:', err));
+    };
+
+    // Function to delete degree
+    window.deleteDegree = function(degreeID) {
+      if (confirm('Are you sure you want to delete this degree?')) {
+        fetch(`${BASE_URL}/degree/${degreeID}`, {
+          method: 'DELETE'
+        })
+        .then(res => res.json())
+        .then(result => {
+          if (result.status === 'success') {
+            alert('Degree deleted successfully');
+            loadExistingDegrees(editId);
+          } else {
+            alert('Failed to delete degree');
+          }
+        })
+        .catch(err => console.error('Error deleting degree:', err));
+      }
+    };
+
     document.getElementById('addressForm').addEventListener('submit', function (e) {
       e.preventDefault();
       const form = e.target;
@@ -561,8 +642,13 @@ if (editId) {
 
       console.log('🎯 Sending degree data:', data);
 
-      fetch(`${BASE_URL}/degree`, {
-        method: 'POST',
+      const isEditMode = form.dataset.editMode === 'true';
+      const editId = form.dataset.editId;
+      const url = isEditMode ? `${BASE_URL}/degree/${editId}` : `${BASE_URL}/degree`;
+      const method = isEditMode ? 'PUT' : 'POST';
+
+      fetch(url, {
+        method: method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data)
       })
@@ -573,8 +659,18 @@ if (editId) {
         .then(result => {
           console.log('🎯 Degree API response:', result);
           if (result.status === 'success') {
-            alert(result.message || 'Degree saved!');
+            alert(result.message || (isEditMode ? 'Degree updated!' : 'Degree saved!'));
             form.reset();
+            
+            // Reset form to create mode
+            document.getElementById('degreeSubmitBtn').textContent = 'Add Degree';
+            form.dataset.editMode = 'false';
+            delete form.dataset.editId;
+            
+            // Reload existing degrees if in edit mode
+            if (window.editId) {
+              loadExistingDegrees(window.editId);
+            }
           } else {
             alert('Error: ' + (result.details || result.message || 'Failed to save degree'));
           }
