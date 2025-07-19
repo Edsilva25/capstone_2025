@@ -117,13 +117,13 @@
   </div>
 
   <section>
-    <h2>Add New Alumni</h2>
+    <h2 id="formTitle">Add New Alumni</h2>
     <form id="addAlumniForm">
       <input name="fName" placeholder="First Name" required />
       <input name="lName" placeholder="Last Name" required />
       <input name="email" placeholder="Email" />
       <input name="phone" placeholder="Phone" />
-      <button type="submit" class="form-full">Add Alumni</button>
+      <button type="submit" class="form-full" id="submitButton">Add Alumni</button>
     </form>
   </section>
 
@@ -203,6 +203,10 @@ const editId = urlParams.get('editId');
 if (editId) {
   console.log('🎯 Edit mode detected, editId:', editId);
   console.log('🎯 Making API call to:', `${BASE_URL}/alumni/${editId}`);
+  
+  // Change the form title and button text for edit mode
+  document.getElementById('formTitle').textContent = 'Edit Alumni';
+  document.getElementById('submitButton').textContent = 'Update Alumni';
   
   fetch(`${BASE_URL}/alumni/${editId}`)
     .then(res => {
