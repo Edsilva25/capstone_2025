@@ -106,6 +106,79 @@
     tr:hover {
       background-color: #f9f9f9;
     }
+
+    /* Modal styles */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0,0,0,0.4);
+    }
+
+    .modal-content {
+      background-color: #fefefe;
+      margin: 15% auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+      max-width: 500px;
+      border-radius: 10px;
+    }
+
+    .close {
+      color: #aaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .close:hover,
+    .close:focus {
+      color: black;
+      text-decoration: none;
+      cursor: pointer;
+    }
+
+    .modal-content h2 {
+      margin-top: 0;
+      color: var(--ksu-black);
+      border-bottom: 2px solid var(--ksu-gold);
+      padding-bottom: 0.5rem;
+    }
+
+    .modal-content form {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+
+    .modal-content input {
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+    }
+
+    .modal-content button {
+      background-color: var(--ksu-gold);
+      color: var(--ksu-black);
+      padding: 0.75rem;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 1rem;
+    }
+
+    .modal-content button:hover {
+      background-color: #e6b800;
+    }
   </style>
 </head>
 <body>
@@ -117,6 +190,7 @@
   <div class="button-bar">
     <button onclick="window.location.href='alumni.html'">Add New Alumni</button>
     <button onclick="editSelectedAlumni()">Edit Alumni</button>
+    <button onclick="editSelectedDegree()">Edit Degree</button>
     <button onclick="deleteSelectedAlumni()">Delete Alumni</button>
   </div>
 
@@ -135,6 +209,22 @@
         <!-- Populated dynamically -->
       </tbody>
     </table>
+  </div>
+
+  <!-- Degree Edit Modal -->
+  <div id="degreeModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2>Edit Degree Information</h2>
+      <p id="modalAlumniName"></p>
+      <form id="degreeEditForm">
+        <input type="hidden" id="modalAlumniID" />
+        <input name="degreeName" placeholder="Degree (e.g. BS, MS)" required />
+        <input name="major" placeholder="Major" required />
+        <input name="year" type="number" placeholder="Year Completed" required />
+        <button type="submit">Update Degree</button>
+      </form>
+    </div>
   </div>
 
   <script>
@@ -179,6 +269,23 @@
       window.location.href = `alumni.html?editId=${id}`;
     }
 
+    function editSelectedDegree() {
+      const selected = document.querySelector('input[name="selectedAlumni"]:checked');
+      if (!selected) {
+        alert("Please select an alumni to edit their degree.");
+        return;
+      }
+      const alumniID = selected.value;
+      
+      // Get the alumni name for display
+      const row = selected.closest('tr');
+      const nameCell = row.cells[1];
+      const alumniName = nameCell.textContent;
+      
+      // Show the degree edit modal
+      showDegreeEditModal(alumniID, alumniName);
+    }
+
     function deleteSelectedAlumni() {
       const selected = document.querySelector('input[name="selectedAlumni"]:checked');
       if (!selected) {
@@ -201,6 +308,109 @@
         });
       }
     }
+
+    // Modal functions
+    function showDegreeEditModal(alumniID, alumniName) {
+      document.getElementById('modalAlumniID').value = alumniID;
+      document.getElementById('modalAlumniName').textContent = `Editing degree for: ${alumniName}`;
+      document.getElementById('degreeModal').style.display = 'block';
+      
+      // Load current degree data if it exists
+      loadCurrentDegreeData(alumniID);
+    }
+
+    function loadCurrentDegreeData(alumniID) {
+      fetch(`https://capstone-2025-6rjg.onrender.com/api/degree/byAlumni/${alumniID}`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.status === 'success' && result.data) {
+            const degree = result.data;
+            // Split degreeName into degree and major
+            const parts = degree.degreeName.split(' ');
+            const degreeType = parts[0] || '';
+            const major = parts.slice(1).join(' ') || '';
+            
+            document.querySelector('#degreeEditForm input[name="degreeName"]').value = degreeType;
+            document.querySelector('#degreeEditForm input[name="major"]').value = major;
+            document.querySelector('#degreeEditForm input[name="year"]').value = degree.year;
+          } else {
+            // Clear form if no degree exists
+            document.querySelector('#degreeEditForm input[name="degreeName"]').value = '';
+            document.querySelector('#degreeEditForm input[name="major"]').value = '';
+            document.querySelector('#degreeEditForm input[name="year"]').value = '';
+          }
+        })
+        .catch(err => {
+          console.error('Error loading degree data:', err);
+        });
+    }
+
+    // Close modal when clicking X
+    document.querySelector('.close').addEventListener('click', function() {
+      document.getElementById('degreeModal').style.display = 'none';
+    });
+
+    // Close modal when clicking outside
+    window.addEventListener('click', function(event) {
+      const modal = document.getElementById('degreeModal');
+      if (event.target === modal) {
+        modal.style.display = 'none';
+      }
+    });
+
+    // Handle degree form submission
+    document.getElementById('degreeEditForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const form = e.target;
+      const alumniID = document.getElementById('modalAlumniID').value;
+      
+      // Combine degree name and major
+      const fullDegreeName = `${form.degreeName.value} ${form.major.value}`.trim();
+      
+      const data = {
+        alumniID: parseInt(alumniID),
+        degreeName: fullDegreeName,
+        year: parseInt(form.year.value)
+      };
+
+      console.log('🎯 Updating degree data:', data);
+
+      // First check if degree exists, then update or create
+      fetch(`https://capstone-2025-6rjg.onrender.com/api/degree/byAlumni/${alumniID}`)
+        .then(res => res.json())
+        .then(result => {
+          if (result.status === 'success' && result.data) {
+            // Update existing degree
+            return fetch(`https://capstone-2025-6rjg.onrender.com/api/degree/${result.data.degreeID}`, {
+              method: 'PUT',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data)
+            });
+          } else {
+            // Create new degree
+            return fetch('https://capstone-2025-6rjg.onrender.com/api/degree', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(data)
+            });
+          }
+        })
+        .then(res => res.json())
+        .then(result => {
+          console.log('🎯 Degree update response:', result);
+          if (result.status === 'success') {
+            alert(result.message || 'Degree updated successfully!');
+            document.getElementById('degreeModal').style.display = 'none';
+            loadAlumni(); // Refresh the table
+          } else {
+            alert('Error: ' + (result.details || result.message || 'Failed to update degree'));
+          }
+        })
+        .catch(err => {
+          console.error('🎯 Degree update error:', err);
+          alert('Failed to update degree: ' + err.message);
+        });
+    });
 
     // Load alumni on page load
     loadAlumni();

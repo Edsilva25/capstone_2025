@@ -19,6 +19,26 @@ router.get('/', (req, res) => {
   });
 });
 
+// GET degree by alumni ID
+router.get('/byAlumni/:alumniID', (req, res) => {
+  const alumniID = req.params.alumniID;
+  const sql = `
+    SELECT degreeID, alumniID, degreeName, year
+    FROM degree
+    WHERE alumniID = ?
+  `;
+  db.query(sql, [alumniID], (err, results) => {
+    if (err) {
+      console.error('Error fetching degree by alumni ID:', err);
+      return res.status(500).json({ status: 'error', message: 'Database error' });
+    }
+    if (results.length === 0) {
+      return res.status(404).json({ status: 'error', message: 'Degree not found for this alumni' });
+    }
+    res.json({ status: 'success', data: results[0] });
+  });
+});
+
 // GET degree by ID
 router.get('/:id', (req, res) => {
   const degreeID = req.params.id;
