@@ -75,14 +75,7 @@
       min-height: 1.2rem;
       text-align: center;
     }
-    .toggle-link {
-      margin-top: 1rem;
-      color: var(--ksu-gold);
-      cursor: pointer;
-      text-align: center;
-      font-weight: bold;
-      text-decoration: underline;
-    }
+
   </style>
 </head>
 <body>
@@ -98,43 +91,14 @@
       <button type="submit">Login</button>
       <div class="error" id="loginError"></div>
     </form>
-    <div class="toggle-link" id="showRegister">Create a new account</div>
+
   </div>
 
-  <div class="container" id="registerContainer" style="display:none;">
-    <h2>Create New Account</h2>
-    <form id="registerForm">
-      <input type="text" name="newUsername" placeholder="Choose username" required autocomplete="username" />
-      <input type="password" name="newPassword" placeholder="Choose password" required autocomplete="new-password" />
-      <input type="password" name="confirmPassword" placeholder="Confirm password" required autocomplete="new-password" />
-      <button type="submit">Register</button>
-      <div class="error" id="registerError"></div>
-    </form>
-    <div class="toggle-link" id="showLogin">Back to login</div>
-  </div>
+
 
 <script>
-  // Toggle forms
-  const loginContainer = document.getElementById('loginContainer');
-  const registerContainer = document.getElementById('registerContainer');
-  const showRegisterLink = document.getElementById('showRegister');
-  const showLoginLink = document.getElementById('showLogin');
-
-  showRegisterLink.addEventListener('click', () => {
-    loginContainer.style.display = 'none';
-    registerContainer.style.display = 'flex';
-    clearErrors();
-  });
-
-  showLoginLink.addEventListener('click', () => {
-    registerContainer.style.display = 'none';
-    loginContainer.style.display = 'flex';
-    clearErrors();
-  });
-
   function clearErrors() {
     document.getElementById('loginError').textContent = '';
-    document.getElementById('registerError').textContent = '';
   }
 
 document.getElementById('loginForm').addEventListener('submit', function(e) {
@@ -165,7 +129,6 @@ document.getElementById('loginForm').addEventListener('submit', function(e) {
 
 
 
-  // 🚫 Registration form still uses localStorage (you can ignore/remove it if you only use the DB)
 </script>
 </body>
 </html>
