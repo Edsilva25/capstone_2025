@@ -95,18 +95,131 @@ router.put('/:id', (req, res) => {
 router.delete('/:id', (req, res) => {
   const alumniID = req.params.id;
 
-  const sql = 'DELETE FROM alumni WHERE alumniID = ?';
-  db.query(sql, [alumniID], (err, result) => {
+  // Use a transaction to ensure all-or-nothing deletion
+  req.app.get('db') ? req.app.get('db').getConnection((err, connection) => {
     if (err) {
-      console.error('Error deleting alumni:', err);
-      return res.status(500).json({ status: 'error', message: 'Failed to delete alumni' });
+      console.error('Error getting DB connection:', err);
+      return res.status(500).json({ status: 'error', message: 'Database connection error' });
     }
-
-    if (result.affectedRows === 0) {
-      return res.status(404).json({ status: 'error', message: 'Alumni not found' });
+    connection.beginTransaction(err => {
+      if (err) {
+        connection.release();
+        console.error('Error starting transaction:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to start transaction' });
+      }
+      // Delete from all related tables first
+      const tables = [
+        { table: 'degree', col: 'alumniID' },
+        { table: 'address', col: 'alumniID' },
+        { table: 'employment', col: 'alumniID' },
+        { table: 'donation', col: 'alumniID' },
+        { table: 'skillset', col: 'alumniID' }
+      ];
+      let idx = 0;
+      function deleteNext() {
+        if (idx >= tables.length) {
+          // Now delete the alumni
+          connection.query('DELETE FROM alumni WHERE alumniID = ?', [alumniID], (err, result) => {
+            if (err) {
+              return connection.rollback(() => {
+                connection.release();
+                console.error('Error deleting alumni:', err);
+                res.status(500).json({ status: 'error', message: 'Failed to delete alumni' });
+              });
+            }
+            if (result.affectedRows === 0) {
+              return connection.rollback(() => {
+                connection.release();
+                res.status(404).json({ status: 'error', message: 'Alumni not found' });
+              });
+            }
+            connection.commit(err => {
+              connection.release();
+              if (err) {
+                console.error('Error committing transaction:', err);
+                return res.status(500).json({ status: 'error', message: 'Failed to commit transaction' });
+              }
+              res.json({ status: 'success', message: 'Alumni deleted successfully' });
+            });
+          });
+        } else {
+          const { table, col } = tables[idx++];
+          connection.query(`DELETE FROM ${table} WHERE ${col} = ?`, [alumniID], (err) => {
+            if (err) {
+              return connection.rollback(() => {
+                connection.release();
+                console.error(`Error deleting from ${table}:`, err);
+                res.status(500).json({ status: 'error', message: `Failed to delete related ${table}` });
+              });
+            }
+            deleteNext();
+          });
+        }
+      }
+      deleteNext();
+    });
+  }) : db.getConnection((err, connection) => {
+    if (err) {
+      console.error('Error getting DB connection:', err);
+      return res.status(500).json({ status: 'error', message: 'Database connection error' });
     }
-
-    res.json({ status: 'success', message: 'Alumni deleted successfully' });
+    connection.beginTransaction(err => {
+      if (err) {
+        connection.release();
+        console.error('Error starting transaction:', err);
+        return res.status(500).json({ status: 'error', message: 'Failed to start transaction' });
+      }
+      // Delete from all related tables first
+      const tables = [
+        { table: 'degree', col: 'alumniID' },
+        { table: 'address', col: 'alumniID' },
+        { table: 'employment', col: 'alumniID' },
+        { table: 'donation', col: 'alumniID' },
+        { table: 'skillset', col: 'alumniID' }
+      ];
+      let idx = 0;
+      function deleteNext() {
+        if (idx >= tables.length) {
+          // Now delete the alumni
+          connection.query('DELETE FROM alumni WHERE alumniID = ?', [alumniID], (err, result) => {
+            if (err) {
+              return connection.rollback(() => {
+                connection.release();
+                console.error('Error deleting alumni:', err);
+                res.status(500).json({ status: 'error', message: 'Failed to delete alumni' });
+              });
+            }
+            if (result.affectedRows === 0) {
+              return connection.rollback(() => {
+                connection.release();
+                res.status(404).json({ status: 'error', message: 'Alumni not found' });
+              });
+            }
+            connection.commit(err => {
+              connection.release();
+              if (err) {
+                console.error('Error committing transaction:', err);
+                return res.status(500).json({ status: 'error', message: 'Failed to commit transaction' });
+              }
+              res.json({ status: 'success', message: 'Alumni deleted successfully' });
+            });
+          });
+        } else {
+          const { table, col } = tables[idx++];
+          connection.query(`DELETE FROM ${table} WHERE ${col} = ?`, [alumniID], (err) => {
+            if (err) {
+              return connection.rollback(() => {
+                connection.release();
+                console.error(`Error deleting from ${table}:`, err);
+                res.status(500).json({ status: 'error', message: `Failed to delete related ${table}` });
+              });
+            }
+            deleteNext();
+          });
+        }
+      }
+      deleteNext();
+    });
   });
 });
 
